@@ -39,7 +39,7 @@ Launch the app and you're dropped straight into a game:
 **Requirements:** Xcode, iOS Simulator or device. No external dependencies to install manually — the project uses Swift Package Manager for `DeckOfPlayingCards` / `PlayingCard`, which Xcode resolves automatically.
 
 ```
-1. Clone the repository
+1. Clone the repository by using: git clone https://github.com/Kirillzy/Durak
 2. Open Durak.xcodeproj in Xcode
 3. Press Cmd+R to build and run in the simulator
 ```
