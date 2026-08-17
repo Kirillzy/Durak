@@ -30,8 +30,9 @@ Launch the app and you're dropped straight into a game:
 5. First to empty their hand wins — last one holding cards is the "Durak."
 ```
 
-#### Table View  |  Dynamic Hand Scaling  | Winscreen
-![[TableView.png|144]]![[HandScaling.png|142]]![[Winscreen.png|143]]
+#### Table View  |  Dynamic Hand Scaling  | Win-screen
+<img src="TableView.png" width="144"><img src="HandScaling.png" width="142"><img src="Winscreen.png" width="143">
+
 
 ## ⬇️ Installation
 
