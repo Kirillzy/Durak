@@ -1,78 +1,87 @@
-Durak SwiftUI
+# 🃏 Durak — SwiftUI Card Game
 
-This game is my own personal spin and implementation of a game I played growing up called Durak, where I learned from my parents (An Eastern European card game). This app of mine is entirely in SwiftUI, where it should dynamically size to fit to each persons screen so that it could be played against the AI. 
+## 🌟 Highlights
 
-Project Team
+- Fully playable single-player **Durak** (a traditional Eastern European / Slovak card game) built from scratch — no starter or skeleton code
+- Custom AI opponent that attacks, defends, and manages trump cards using rank/suit-based heuristics
+- **Adaptive UI**: hands dynamically "crunch" (overlap and scale down) as they grow so gameplay stays comfortable on any screen size
+- MVVM architecture — all game rules and state transitions live in a testable `ObservableObject` view model, fully decoupled from the SwiftUI views
+- Custom deck logic layered on top of the `DeckOfPlayingCards` package to produce a proper 36-card Durak deck (6 through Ace)
 
-    Lead Developer: Just me.
+## ℹ️ Overview
 
+Durak ("fool" in Russian/Slovak) is a card game I grew up playing with my parents. For my Mobile App Development course, I decided to rebuild it from the ground up as a native iOS app rather than start from a course template, both as a personal challenge and as a way to preserve a game that means a lot to my family.
 
-What the App Does: 
-    
-    The app allows a single player to engage in a game of Durak against an AI opponent.
+The app lets a single player face off against an AI opponent, handling the full Durak rule set: dealing, trump determination, attacking, defending, taking, passing, and win/loss/draw conditions. All game logic (including AI decision-making) is implemented in Swift using an MVVM pattern, with SwiftUI driving a responsive table-style layout that adapts as each player's hand grows or shrinks.
 
-    Core Mechanics: Supports attacking, defending, and trump card logic.
+### ✍️ Author
 
-    Adaptive/Dynamic UI: Cards automatically "crunch" together and scale down as your hand grows to ensure the game remains playable on mobile screens.
+Built by **Kirill Zhurbytskyy**. Find more of my work on [GitHub](https://github.com/Kirillzy).
 
-    Visuals: Features a 2-column "pairs" grid for the play area and a status badge to track roles and the current trump suit, as well as the AI status message to signal to the player what it has done.
+## 🚀 Usage
 
+Launch the app and you're dropped straight into a game:
 
-Setup - Getting the game ready
+```
+1. Cards are dealt (6 per player) and the trump suit is revealed.
+2. Whoever holds the lowest trump card attacks first.
+3. Tap a card in your hand to attack or defend.
+4. Use PASS (as attacker) or TAKE (as defender) to end your turn.
+5. First to empty their hand wins — last one holding cards is the "Durak."
+```
 
-    Open the project in Xcode.
+#### Table View  |  Dynamic Hand Scaling  | Winscreen
+![[TableView.png|144]]![[HandScaling.png|142]]![[Winscreen.png|143]]
 
-    No dependences are needed.
+## ⬇️ Installation
 
-    Just click to run the simulator (CMD+R) or the start play button on the top left corner
+**Requirements:** Xcode, iOS Simulator or device. No external dependencies to install manually — the project uses Swift Package Manager for `DeckOfPlayingCards` / `PlayingCard`, which Xcode resolves automatically.
 
+```
+1. Clone the repository
+2. Open Durak.xcodeproj in Xcode
+3. Press Cmd+R to build and run in the simulator
+```
 
-How to Play
+## 🎮 How to Play
 
-    Setup
+<details>
+<summary>Full rules (click to expand)</summary>
 
-        Each player starts with 6 cards.
+**Setup**
+Each player starts with 6 cards. The next card dealt becomes the **Trump Card** — its suit becomes the Trump Suit, which beats every other suit regardless of rank. The player holding the lowest-ranking trump card goes first as Attacker.
 
-        The card dealt after the initial hands is the Trump Card. Its suit becomes the "Trump Suit," which beats all other suits regardless of rank.
+**Attacking**
+The Attacker plays cards into the center, trying to empty their hand. The opening card can be anything; every follow-up card must match the rank of a card already on the table (e.g., if a 6 and an 8 are down, only more 6s or 8s can be added). When the Attacker is done, they Pass — the table clears to the discard pile and roles swap.
 
-    Roles
+**Defending**
+The Defender must beat every attacking card: a higher card of the same suit, or any trump if the attack wasn't a trump (a trump attack needs a higher trump to beat it). If the Defender can't (or won't) beat a card, they Take — all table cards go into their hand, and they defend again next round instead of attacking.
 
-        There are two roles: Attacker and Defender. The player with the lowest-ranking Trump card in their hand starts as the first Attacker.
+**Drawing & Endgame**
+After each round, players draw back up to 6 cards — Attacker first, then Defender. Once the draw pile runs out, the game enters its endgame: first player to empty their hand wins, the other is left holding cards ("the Durak"). If both empty their hands on the same turn, it's a draw.
 
-    The Attacker's Goal
+</details>
 
-    The Attacker tries to get rid of cards by playing them into the center.
+## 🛠️ Under the Hood
 
-        First Move: You can play any card (starting with your lowest non-Trump card is recommended).
+| Piece | What it does |
+|---|---|
+| `DurakDeck.swift` | Builds a 36-card Durak deck from the standard 52-card deck (strips 2–5) |
+| `SimulateGame.swift` | `GameViewModel` — all game state and rules: turn logic, attack/defend validation, AI behavior, win detection |
+| `Game.swift` | Main SwiftUI view — table layout, dynamic hand spacing/scaling, status badges |
+| `SubCardViews.swift` | Reusable card, card-back, and overlay views |
+## 🧠 Design Notes
 
-        Follow-up Attacks: You can only attack with cards that match the rank of any card already on the table. (Example: If there is a 6 and an 8 on the table, you can only play other 6s or 8s).
+A few decisions and tradeoffs worth calling out, mostly for my own future reference:
 
-        Passing: If you cannot or do not want to attack anymore, you Pass. All cards on the table are moved to the discard pile, your turn ends, and you become the Defender for the next round.
+- **Simplified "takes cards" rule for 2-player.** In real Durak with 3+ players, taking cards passes the attack to the _next_ player in turn order. With only one AI opponent, there's no "next player" to hand off to, so the same attacker just goes again after the defender takes. This is called out directly in `defenderTakesTable()` — worth revisiting if I ever add more AI opponents.
+- **Endgame detection is deck-driven, not turn-driven.** `checkForWinner()` only fires once `deck.count == 0 && trumpCard == nil` — i.e., once there's nothing left to draw. This matches real Durak (you can't "win" mid-game just because your hand is briefly empty if you're about to draw more cards), but it means the win check has to be called carefully after _every_ hand-emptying event, not just at end of turn.
+- **The trump card doubles as the last card in the draw pile.** Rather than tracking it as a separate pile, `trumpCard` is dealt with at reveal time and only gets folded into `refillHand()` once the main deck is exhausted. This keeps the "deck count + trump" display logic simple but means `trumpCard != nil` is silently doing double duty as both "what's the trump suit" and "is there one card left to draw" — a bit overloaded, but avoided a second published property.
+- **`isProcessing` as a blunt UI lock.** Rather than fine-grained state machine states (attacking/defending/animating/etc.), I used a single boolean to lock player input while the AI "thinks." Simple and effective for a 2-player game, but it means every AI action path has to remember to flip it back to `false` — a couple of near-misses while debugging turn transitions.
+- **AI "thinking" delay is a hardcoded `DispatchQueue.main.asyncAfter(1.5s)`.** Purely for UX — instant AI moves felt jarring and made the opponent feel less "real." Tradeoff: it's a fixed delay rather than tied to any actual computation, so it doesn't scale with move complexity (not that this AI needs it).
+- **AI priorities are simple heuristics, not lookahead.** The AI always plays its lowest non-trump card when attacking, and its lowest valid card when defending. This is a naive linear sort (`sorted.first`), not a minimax/lookahead player. It plays "reasonably" but doesn't model whether trading cards now sets up a bad situation later — a good candidate for a v2 if I want more challenging difficulty tiers.
+- **Dynamic hand crunching uses fixed breakpoints, not a continuous formula.** `dynamicSpacing(for:)` and `dynamicScale(for:)` step down at hardcoded thresholds (6, 10, 12 cards) rather than interpolating smoothly. Simpler to reason about and tune by eye, at the cost of a slightly visible "jump" right at each threshold.
 
-    The Defender's Goal
+## 💭 Feedback and Contributing
 
-    The Defender must "beat" every card the Attacker plays.
-
-        Matching Suit: You can beat a card by playing a higher-ranking card of the same suit.
-
-        Using Trumps: If the Attacker plays a non-Trump card, you can beat it with any Trump card. If the Attacker plays a Trump card, you must beat it with a higher-ranking Trump.
-
-        Taking: If you cannot (or choose not to) defend, you must Take. All cards on the table are added to your hand. If you take, you skip your next turn to attack and must defend again.
-
-    Turn Structure & Drawing
-
-        After each turn, players draw back up to 6 cards from the deck.
-
-        The Attacker draws first, then the Defender.
-
-        If you already have 6 or more cards (from "Taking"), you do not draw.
-
-    How the Game Ends
-
-    Once the draw pile is empty, the game enters the end phase. The goal is to be the first to empty your hand.
-
-        Win: You empty your hand before the AI.
-
-        Loss: The AI empties its hand before you.
-
-        Draw: Both you and the AI play your final cards on the same turn.
+This started as a solo course project, but I'd love feedback! Feel free to open an issue if you spot a bug or have ideas for improving the AI (e.g., smarter defense prioritization, throw-in logic for multiplayer-style attacks). Pull requests are welcome.
